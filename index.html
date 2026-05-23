@@ -342,69 +342,48 @@
 
         // 【核心優化修正】：完美對接萌典官方公開資料欄位
 // 【終極修正版】：加入 CORS 代理，徹底解決 0/15 抓取失敗問題
-// 【終極進化版】：多重代理分流 + 課堂防卡死保險機制
-async function fetchWordData(char) {
-    // 1. 定義標準萌典 API 路徑
-    const targetUrl = `https://www.moedict.tw/a/${encodeURIComponent(char)}.json`;
-    
-    // 2. 準備三個不同的免費 CORS 代理伺服器渠道
-    const proxies = [
-        `https://api.codetabs.com/v1/proxy?url=${encodeURIComponent(targetUrl)}`,
-        `https://thingproxy.freeboard.io/fetch/${targetUrl}`,
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`
-    ];
+// 【全新精簡版】：直接連線萌典 + 絕對保底機制
+        async function fetchWordData(char) {
+            try {
+                // 1. 直接向萌典發送請求，不透過任何代理伺服器
+                const response = await fetch(`https://www.moedict.tw/uni/${char}.json`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // 2. 確保資料結構完整
+                    if (data.heteronyms && data.heteronyms.length > 0 && data.heteronyms[0].defs && data.heteronyms[0].defs.length > 0) {
+                        const het0 = data.heteronyms[0];
+                        const bopo = cleanBopomofo(het0.bopomofo);
+                        const defObj = het0.defs[0];
+                        const exampleText = defObj.example ? defObj.example.join("、") : "（請參考注釋）";
 
-    // 嘗試輪流使用不同的代理伺服器
-    for (let i = 0; i < proxies.length; i++) {
-        try {
-            console.log(`[發送請求] 嘗試使用管道 ${i + 1} 獲取字詞: ${char}`);
-            const response = await fetch(proxies[i]);
-            
-            if (!response.ok) {
-                console.warn(`管道 ${i + 1} 回傳錯誤狀態: ${response.status}，準備切換下一個管道。`);
-                continue; 
+                        return {
+                            word: char,
+                            zhuyin: bopo || "---",
+                            definition: defObj.def || "暫無注釋",
+                            example: exampleText,
+                            altBopo: (data.heteronyms.length > 1) ? cleanBopomofo(data.heteronyms[1].bopomofo) : null
+                        };
+                    }
+                }
+            } catch (error) {
+                console.warn(`萌典 API 暫時無法回應「${char}」，啟動保底機制。`);
             }
-            
-            const data = await response.json();
-            if (!data.heteronyms || data.heteronyms.length === 0) continue;
-            
-            const het0 = data.heteronyms[0];
-            const bopo = cleanBopomofo(het0.bopomofo);
-            
-            const definitions = het0.definitions || het0.defs;
-            if (!definitions || definitions.length === 0) continue;
-            
-            const defObj = definitions[0];
-            const exampleText = defObj.example ? defObj.example.join("、") : "（請參考注釋）";
 
-            console.log(`🎉 [生字成功] 字詞「${char}」經由管道 ${i + 1} 成功獲取並解析！`);
+            // =================================================================
+            // 🚨 【絕對保底機制】
+            // 如果萌典查不到這個字、或者網路稍慢，直接由系統自動生成字卡。
+            // 確保每次抽出的 15 個字都能用，學生可以立刻進入測驗！
+            // =================================================================
             return {
                 word: char,
-                zhuyin: bopo || "---",
-                definition: defObj.def || "暫無注釋",
-                example: exampleText,
-                altBopo: (data.heteronyms.length > 1) ? cleanBopomofo(data.heteronyms[1].bopomofo) : null
+                zhuyin: "---",
+                definition: "（依字面文意判斷）",
+                example: `${char}字、${char}詞`,
+                altBopo: null
             };
-        } catch (error) {
-            console.warn(`[管道 ${i + 1} 失效] 無法讀取「${char}」，原因：`, error.message);
-            // 繼續跑 loop，嘗試下一個 proxy
         }
-    }
-    
-    // =================================================================
-    // 🚨 【課堂防卡死安全網】
-    // 如果上面所有代理伺服器全部集體罷工，直接啟動此機制，動態生成生字卡，
-    // 確保學生能正常進入遊戲、進行測驗，教學不中斷！
-    // =================================================================
-    console.error(`❌ [防護機制啟動] 偵測到外部網路代理全數斷線！已自動為「${char}」生成安全字卡。`);
-    return {
-        word: char,
-        zhuyin: "請依字面讀音",
-        definition: "（當前教育部萌典伺服器連線繁忙，請根據字形與日常用法選出正確組合通關。）",
-        example: `${char}天、${char}詞`,
-        altBopo: null
-    };
-}
         // ------------------ 遊戲流程 ------------------
         async function startApp() {
             studentGrade = document.getElementById('grade').value;
