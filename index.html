@@ -397,14 +397,22 @@ async function startApp() {
                 validWords = validWords.concat(batchValid);
             }
 
-            // 3. 最後檢查
-            if (validWords.length < 15) {
-                alert(`轉換成功的字數僅有 (${validWords.length}/15)。\n請檢查字庫中的字是否大多為罕見字，建議多補一些常用字！`);
-                document.getElementById('loading').classList.remove('hidden');
-                return;
-            }
+// ------------------ 修改後的 startApp 中的資料處理部分 ------------------
+        // 2. 拿雲端的字去查萌典 API
+        const wordPromises = wordPool.map(char => fetchWordData(char));
+        const results = await Promise.all(wordPromises);
+        
+        // 【關鍵修改】：放寬篩選，只要 fetchWordData 回傳不為 null 就全部納入
+        const validWords = results.filter(item => item !== null);
+        
+        // 只要湊滿 15 個就直接放行，不再做過度篩選
+        if (validWords.length < 15) {
+            alert(`目前成功獲取的字數僅 (${validWords.length}/15)。\n請在試算表 WordPool 分頁多貼一些常用中文字 (如：大、小、日、月、人...)！`);
+            document.getElementById('loading').classList.add('hidden');
+            return;
+        }
 
-            currentQuizData = validWords.slice(0, 15);
+        currentQuizData = validWords.slice(0, 15);
             
             document.getElementById('loading').classList.add('hidden');
             renderInventory();
