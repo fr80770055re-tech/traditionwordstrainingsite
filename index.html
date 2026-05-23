@@ -315,7 +315,7 @@
         }
 
         // ------------------ API 邏輯 ------------------
-        async function fetchWordData(char) {
+async function fetchWordData(char) {
             try {
                 const response = await fetch(`https://www.moedict.tw/uni/${char}.json`);
                 if (!response.ok) return null;
@@ -327,35 +327,19 @@
                 
                 if (!het0.defs || het0.defs.length === 0) return null;
                 const defObj = het0.defs[0];
-                if (!defObj.example) return null; 
+                
+                // 【修正重點】：如果有造詞就合併，沒有就給預設字串，不再把字丟掉！
+                const exampleText = defObj.example ? defObj.example.join("、") : "（請參考注釋）";
 
                 return {
                     word: char,
                     zhuyin: bopo,
                     definition: defObj.def,
-                    example: defObj.example.join("、"),
+                    example: exampleText,
                     altBopo: (data.heteronyms.length > 1) ? cleanBopomofo(data.heteronyms[1].bopomofo) : null
                 };
             } catch (error) { return null; }
         }
-
-        async function loadInventoryFromCloud() {
-            try {
-                const response = await fetch(GAS_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: "load", seat: studentSeat })
-                });
-                const result = await response.json();
-                if(result.status === "success" && result.materials) {
-                    currentMaterials = result.materials;
-                }
-            } catch (error) {
-                console.error("讀取雲端背包失敗，使用預設空背包", error);
-                currentMaterials = { wood: 0, water: 0, fire: 0 };
-            }
-        }
-
         // ------------------ 遊戲流程 ------------------
         async function startApp() {
             studentGrade = document.getElementById('grade').value;
