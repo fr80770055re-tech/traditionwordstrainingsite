@@ -234,11 +234,10 @@
 
     <script>
         // ------------------ 設定區 ------------------
-        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbx88PaDP4leZJZOTFWmeG-FsSr0xCvfg7urLwqUH9QAu2TDQmddGUlpRgBT7GAAR8_qdg/exec"; 
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxb2oSRLSXZ7aFI12Wiq2guBu6JRSRd4_8VhMH-z-b_KshHL0PHQWOMgO2Fxk6vdU8B5A/exec"; 
 
-        const wordPool = ["學","家","作","事","開","文","體","寫","意","花",
-                          "知","常","經","教","活","美","校","進","樂","部",
-                          "數","色","真","山","題","表","課","月","位","新"];
+// 【修改點】：字庫改成由雲端動態取得，初始設為空陣列
+        let wordPool = [];
 
         // ------------------ 狀態變數 ------------------
         let currentQuizData = []; 
@@ -328,7 +327,7 @@ async function fetchWordData(char) {
                 if (!het0.defs || het0.defs.length === 0) return null;
                 const defObj = het0.defs[0];
                 
-                // 【修正重點】：如果有造詞就合併，沒有就給預設字串，不再把字丟掉！
+                // 放寬條件：若無現成造詞範例，不丟棄該字，改以預設文字呈現
                 const exampleText = defObj.example ? defObj.example.join("、") : "（請參考注釋）";
 
                 return {
@@ -341,29 +340,37 @@ async function fetchWordData(char) {
             } catch (error) { return null; }
         }
         // ------------------ 遊戲流程 ------------------
-        async function startApp() {
+async function startApp() {
             studentGrade = document.getElementById('grade').value;
             studentSeat = document.getElementById('seat').value;
             if(!studentSeat) { alert("請輸入座號！"); return; }
 
             document.getElementById('loading').classList.remove('hidden');
 
-            // 1. 同步打 API 抓字卡與讀取雲端存檔
-            const wordPromises = getRandomSubset(wordPool, 25).map(char => fetchWordData(char));
-            const cloudPromise = loadInventoryFromCloud();
+            // 1. 先讀取雲端存檔（包含獲取雲端隨機字庫）
+            await loadInventoryFromCloud();
             
-            const [results] = await Promise.all([Promise.all(wordPromises), cloudPromise]);
+            if (!wordPool || wordPool.length < 15) {
+                alert("雲端字庫字數不足 15 個，請先確認試算表的 WordPool 工作表內有足夠的字！");
+                document.getElementById('loading').classList.add('hidden');
+                return;
+            }
+
+            // 2. 拿到了雲端抽出的字，再去並行查詢萌典 API
+            const wordPromises = wordPool.map(char => fetchWordData(char));
+            const results = await Promise.all(wordPromises);
             
+            // 過濾掉真正的無效字
             const validWords = results.filter(item => item !== null);
             if (validWords.length < 15) {
-                alert("網路不穩或字庫獲取不足，請重新整理！");
+                alert("網路不穩或合格字數不足，請再試一次或重新整理！");
                 document.getElementById('loading').classList.add('hidden');
                 return;
             }
 
             currentQuizData = validWords.slice(0, 15);
             
-            // 2. 顯示背包並進入學習模式
+            // 3. 顯示背包並進入學習模式
             document.getElementById('loading').classList.add('hidden');
             renderInventory();
             document.getElementById('inventory-panel').classList.remove('hidden');
@@ -373,7 +380,6 @@ async function fetchWordData(char) {
             renderLearn();
             showScreen('learning-screen');
         }
-
         function renderLearn() {
             const current = currentQuizData[currentLearnIndex];
             document.getElementById('ruby-word').childNodes[0].nodeValue = current.word;
