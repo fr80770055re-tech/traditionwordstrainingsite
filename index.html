@@ -1,323 +1,90 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>識字小達人 - 字族花朵完全整合版</title>
-    <style>
-        :root { --bg-color: #F5F5F0; --right-bg: #E3D5CA; --text-main: #4A4A4A; --btn-bg: #A3B5A6; --btn-hover: #8F9F91; --btn-quiz: #9CA8B8; --btn-quiz-hover: #8793A3; --btn-wrong: #D4A3A3; --btn-correct: #A3C9A8; }
-        body { font-family: 'BiauKai', '標楷體', serif; display: flex; height: 100vh; margin: 0; background-color: var(--bg-color); color: var(--text-main); overflow: hidden; }
-        #left-panel { flex: 5; display: flex; flex-direction: column; justify-content: center; padding: 40px 60px; box-sizing: border-box; overflow-y: auto; }
-        #right-panel { flex: 5; display: flex; justify-content: center; align-items: center; background-color: var(--right-bg); border-left: 2px solid #D5C7BC; position: relative; }
-        .hidden { display: none !important; }
-        h1, h2 { font-size: 2.3rem; margin-bottom: 20px; }
-        p { font-size: 1.4rem; line-height: 1.6; margin-bottom: 15px; }
-        .input-group { margin-bottom: 20px; font-size: 1.5rem; }
-        .input-group input { font-size: 1.5rem; padding: 8px; width: 100px; border: 2px solid #ccc; border-radius: 8px; font-family: 'BiauKai', '標楷體', serif; }
-        .btn { padding: 12px 25px; font-size: 1.6rem; margin: 10px 0; cursor: pointer; border-radius: 12px; border: none; background-color: var(--btn-bg); color: white; font-family: 'BiauKai', '標楷體', serif; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .btn:hover { background-color: var(--btn-hover); transform: translateY(-2px); }
-        #options-container { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 500px; }
-        .quiz-btn { background-color: var(--btn-quiz); text-align: left; padding: 18px; font-size: 1.4rem; }
-        .quiz-btn:hover { background-color: var(--btn-quiz-hover); }
-        .btn-wrong { background-color: var(--btn-wrong) !important; animation: shake 0.4s; }
-        .btn-correct { background-color: var(--btn-correct) !important; }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } }
-        #loading { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(245, 245, 240, 0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 2rem; z-index: 1000; }
-        #inventory-panel { background-color: #E6E1DC; padding: 12px 20px; border-radius: 12px; font-size: 1.3rem; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; border: 1px solid #D5C7BC; }
-        
-        /* 花朵識字視覺核心 CSS */
-        .flower-wrapper { position: relative; width: 380px; height: 380px; display: flex; justify-content: center; align-items: center; }
-        .flower-core { width: 90px; height: 90px; background-color: #D9A07E; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 2.8rem; color: white; z-index: 10; box-shadow: 0 4px 8px rgba(0,0,0,0.15); border: 3px solid #FFF; }
-        .petal { position: absolute; width: 75px; height: 75px; background-color: #E8D8CE; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 2.2rem; color: #5A5A5A; transition: all 0.4s ease; box-shadow: 0 3px 6px rgba(0,0,0,0.08); border: 2px solid #FFF; }
-        .petal-target { background-color: var(--btn-bg) !important; color: white !important; font-weight: bold; transform: scale(1.15) !important; box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important; z-index: 5; }
-        
-        #toast-container { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 9999; pointer-events: none; display: flex; flex-direction: column; gap: 10px; }
-        .toast { background-color: rgba(255, 255, 255, 0.95); border: 2px solid var(--btn-correct); color: var(--text-main); padding: 12px 24px; border-radius: 30px; font-size: 1.5rem; animation: floatUp 1.5s forwards; }
-        @keyframes floatUp { 0% { opacity: 0; transform: translateY(20px); } 15% { opacity: 1; transform: translateY(0); } 85% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-20px); } }
-    </style>
-</head>
-<body>
-    <div id="loading" class="hidden">載入花朵字族題庫中，請稍候...</div>
-    <div id="toast-container"></div>
+function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify({"status": "success", "message": "API is working"})).setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    var action = data.action; 
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
     
-    <div id="left-panel">
-        <div id="inventory-panel" class="hidden">
-            🎒 <b>我的背包</b> | <span id="inv-wood">🪵 原木: 0</span> | <span id="inv-water">💧 水滴石: 0</span> | <span id="inv-fire">🔥 火焰碎片: 0</span>
-        </div>
-        
-        <div id="login-screen">
-            <h1>📝 識字小達人：字族花朵挑戰</h1>
-            <div class="input-group"><label>年級：<input type="number" id="grade" min="1" max="6" value="4"></label></div>
-            <div class="input-group"><label>座號：<input type="number" id="seat" min="1" placeholder="例: 15"></label></div>
-            <button class="btn" onclick="startApp()">進入學習模式</button>
-        </div>
-        
-        <div id="learning-screen" class="hidden">
-            <h2 id="learn-example1">造詞一：顯示中...</h2>
-            <h2 id="learn-example2" style="color: #6B7A6E;">造詞二：顯示中...</h2>
-            <p id="learn-def">注釋：顯示中...</p>
-            <p style="color:#777; font-size:1.1rem;">學習進度: <span id="learn-progress">1/15</span></p>
-            <button class="btn" id="next-learn-btn" onclick="nextLearn()">下一個字</button>
-            <button class="btn hidden" style="background-color: #E2A76F;" id="start-quiz-btn" onclick="startQuiz()">字族特訓開始！</button>
-        </div>
-        
-        <div id="quiz-screen" class="hidden">
-            <h2 id="quiz-title">請選出正確的「讀音」與「造詞組合」</h2>
-            <p style="color:#777; font-size:1.1rem;" id="quiz-progress-text">測驗進度: 1/15</p>
-            <div id="options-container"></div>
-        </div>
-        
-        <div id="result-screen" class="hidden">
-            <h1>探索結束！</h1>
-            <p>花費時間：<span id="time-spent"></span> 秒</p>
-            <p>錯題數量：<span id="error-count"></span> 題</p>
-            <div id="earned-summary" style="background: #E6E1DC; padding: 15px; border-radius: 8px; margin-bottom: 20px;"></div>
-            <p id="result-message" style="font-weight: bold; color: var(--btn-quiz);"></p>
-            <button class="btn" id="retry-btn" onclick="retryErrors()">進行錯題二次特訓</button>
-            <button class="btn hidden" id="restart-btn" onclick="location.reload()">重新開始新測驗</button>
-        </div>
-    </div>
+    // 🛡️ 防呆機制：如果找不到分頁，就自動幫老師建立
+    var sheetRecords = ss.getSheetByName("Records");
+    if (!sheetRecords) { sheetRecords = ss.insertSheet("Records"); }
     
-    <div id="right-panel">
-        <div id="flower-container" class="flower-wrapper hidden"></div>
-    </div>
+    var sheetInventory = ss.getSheetByName("Inventory");
+    if (!sheetInventory) {
+      sheetInventory = ss.insertSheet("Inventory");
+      sheetInventory.appendRow(["座號", "原木", "水滴石", "火焰碎片"]);
+    }
+    
+    // 檢查字庫分頁是否存在（可能叫 WordPool 或 工作表1）
+    var sheetWordPool = ss.getSheetByName("WordPool");
+    if (!sheetWordPool) {
+      return ContentService.createTextOutput(JSON.stringify({"status": "error", "message": "找不到名為 WordPool 的分頁，請確認試算表下方的分頁名稱！"})).setMimeType(ContentService.MimeType.JSON);
+    }
 
-    <script>
-        // 🚨 這裡請貼上您最新部署的 GAS 網址 (保留前後的引號)
-        const GAS_API_URL = "https://script.google.com/macros/s/AKfycby3OxAfS8oT99AWFIg73AQC-FSmFsLoXtoNiZviAWGkcKCabe2Ac38ZNgg4aa8lXPat/exec"; 
-        
-        let currentQuizData = [], errorList = [];
-        let currentLearnIndex = 0, currentQuizIndex = 0, startTime = null, timeSpent = 0, isRetryMode = false;
-        let studentGrade = "", studentSeat = "";
-        let currentMaterials = { wood: 0, water: 0, fire: 0 }, earnedMaterials = { wood: 0, water: 0, fire: 0 };
-
-        function shuffle(array) {
-            let currentIndex = array.length, randomIndex;
-            while (currentIndex !== 0) {
-                randomIndex = Math.floor(Math.random() * currentIndex);
-                currentIndex--;
-                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
-            }
-            return array;
+    // --- 讀取邏輯 ---
+    if (action === "load") {
+      var seat = data.seat.toString();
+      var materials = { wood: 0, water: 0, fire: 0 };
+      
+      var lastRowInv = sheetInventory.getLastRow();
+      if (lastRowInv > 0) {
+        var dataRange = sheetInventory.getDataRange().getValues();
+        for (var i = 1; i < dataRange.length; i++) {
+          if (dataRange[i][0].toString() === seat) {
+            materials = { wood: Number(dataRange[i][1])||0, water: Number(dataRange[i][2])||0, fire: Number(dataRange[i][3])||0 };
+            break;
+          }
         }
+      }
+      
+      var cloudWords = [];
+      var wordValues = sheetWordPool.getDataRange().getValues();
+      var validRows = wordValues.slice(1).filter(function(r) { return r[0] && r[1] && r[2]; }); 
+      
+      var shuffled = validRows.sort(function() { return 0.5 - Math.random(); });
+      var sampleSize = Math.min(15, shuffled.length);
+      
+      for(var j = 0; j < sampleSize; j++) {
+        cloudWords.push({
+          word: shuffled[j][0].toString(),
+          zhuyin: shuffled[j][1].toString(),
+          example1: shuffled[j][2].toString(),
+          example2: shuffled[j][3] ? shuffled[j][3].toString() : "",
+          definition: shuffled[j][4] ? shuffled[j][4].toString() : "暫無注釋",
+          flowerCore: shuffled[j][5] ? shuffled[j][5].toString() : " ",
+          flowerPetals: shuffled[j][6] ? shuffled[j][6].toString() : ""
+        });
+      }
+      return ContentService.createTextOutput(JSON.stringify({"status": "success", "materials": materials, "words": cloudWords}))
+                           .setMimeType(ContentService.MimeType.JSON);
+    }
 
-        function getRandomPropertyExclude(arr, key, excludeValue) {
-            const filtered = arr.filter(item => item[key] !== excludeValue);
-            return filtered.length > 0 ? filtered[Math.floor(Math.random() * filtered.length)][key] : excludeValue;
-        }
+    // --- 儲存邏輯 ---
+    if (action === "save") {
+      sheetRecords.appendRow([new Date(), data.grade, data.seat, data.timeSpent, data.errorCount]);
+      var seat = data.seat.toString();
+      var added = data.addedMaterials;
+      
+      var lastRowInv = sheetInventory.getLastRow();
+      var foundRow = -1;
+      if (lastRowInv > 0) {
+        var dataRange = sheetInventory.getDataRange().getValues();
+        for (var i = 1; i < dataRange.length; i++) { if (dataRange[i][0].toString() === seat) { foundRow = i + 1; break; } }
+      }
 
-        function showScreen(id) {
-            ['login-screen', 'learning-screen', 'quiz-screen', 'result-screen'].forEach(s => document.getElementById(s).classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-        }
-
-        function renderInventory() {
-            document.getElementById('inv-wood').textContent = `🪵 原木: ${currentMaterials.wood}`;
-            document.getElementById('inv-water').textContent = `💧 水滴石: ${currentMaterials.water}`;
-            document.getElementById('inv-fire').textContent = `🔥 火焰碎片: ${currentMaterials.fire}`;
-        }
-
-        function triggerDrop() {
-            const mats = ['wood', 'water', 'fire'];
-            const drop = mats[Math.floor(Math.random() * mats.length)];
-            earnedMaterials[drop]++; currentMaterials[drop]++;
-            renderInventory();
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.textContent = `🎉 獲得 1 個${drop === 'wood' ? '原木' : drop === 'water' ? '水滴石' : '火焰碎片'}！`;
-            document.getElementById('toast-container').appendChild(toast);
-            setTimeout(() => toast.remove(), 1500);
-        }
-
-        function drawFlower(coreComponent, targetWord, petalsString) {
-            const container = document.getElementById('flower-container');
-            container.innerHTML = ''; 
-            container.classList.remove('hidden');
-
-            const core = document.createElement('div');
-            core.className = 'flower-core';
-            core.textContent = coreComponent || " ";
-            container.appendChild(core);
-
-            let petals = petalsString ? petalsString.split(/[,，、]/).map(p => p.trim()).filter(p => p) : [];
-            if (!petals.includes(targetWord)) petals.unshift(targetWord);
-
-            const radius = 105; 
-            const totalPetals = petals.length;
-
-            petals.forEach((word, index) => {
-                const petal = document.createElement('div');
-                petal.className = 'petal';
-                petal.textContent = word;
-
-                if (word === targetWord) petal.classList.add('petal-target'); 
-
-                const angle = (-Math.PI / 2) + (index * (2 * Math.PI / totalPetals));
-                const x = radius * Math.cos(angle);
-                const y = radius * Math.sin(angle);
-
-                petal.style.transform = `translate(${x}px, ${y}px)`;
-                container.appendChild(petal);
-            });
-        }
-
-        async function startApp() {
-            studentGrade = document.getElementById('grade').value;
-            studentSeat = document.getElementById('seat').value;
-            if(!studentSeat) return alert("請輸入座號！");
-
-            document.getElementById('loading').classList.remove('hidden');
-
-            try {
-                const response = await fetch(GAS_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // 已加入 CORS 通行證
-                    body: JSON.stringify({ action: "load", seat: studentSeat })
-                });
-                const result = await response.json();
-                
-                if(result.status === "success") {
-                    currentMaterials = result.materials || currentMaterials;
-                    currentQuizData = result.words || [];
-                    
-                    if (currentQuizData.length < 1) {
-                        alert("題庫尚未建立完全，請確認試算表欄位！");
-                        document.getElementById('loading').classList.add('hidden');
-                        return;
-                    }
-                } else { throw new Error(result.message); }
-            } catch(e) {
-                // 已加入真實錯誤訊息印出功能
-                alert("連線失敗：" + e.message);
-                document.getElementById('loading').classList.add('hidden');
-                return;
-            }
-
-            document.getElementById('loading').classList.add('hidden');
-            renderInventory();
-            document.getElementById('inventory-panel').classList.remove('hidden');
-            currentLearnIndex = 0;
-            renderLearn();
-            showScreen('learning-screen');
-        }
-
-        function renderLearn() {
-            const current = currentQuizData[currentLearnIndex];
-            
-            document.getElementById('learn-example1').textContent = `造詞一：${current.example1}`;
-            document.getElementById('learn-example2').textContent = `造詞二：${current.example2 || '（無）'}`;
-            document.getElementById('learn-def').textContent = `注釋：${current.definition}`;
-            document.getElementById('learn-progress').textContent = `${currentLearnIndex + 1} / ${currentQuizData.length}`;
-
-            drawFlower(current.flowerCore, current.word, current.flowerPetals);
-
-            document.getElementById('next-learn-btn').classList.toggle('hidden', currentLearnIndex === currentQuizData.length - 1);
-            document.getElementById('start-quiz-btn').classList.toggle('hidden', currentLearnIndex !== currentQuizData.length - 1);
-        }
-
-        function nextLearn() { if (currentLearnIndex < currentQuizData.length - 1) { currentLearnIndex++; renderLearn(); } }
-
-        function startQuiz() {
-            currentQuizIndex = 0; errorList = []; isRetryMode = false; earnedMaterials = { wood: 0, water: 0, fire: 0 };
-            startTime = new Date();
-            renderQuiz();
-            showScreen('quiz-screen');
-        }
-
-        function renderQuiz() {
-            const targetArray = isRetryMode ? errorList : currentQuizData;
-            const currentItem = targetArray[currentQuizIndex];
-            
-            drawFlower(currentItem.flowerCore, currentItem.word, currentItem.flowerPetals);
-
-            document.getElementById('quiz-progress-text').textContent = isRetryMode ? `錯題二次特訓: ${currentQuizIndex + 1} / ${targetArray.length}` : `測驗進度: ${currentQuizIndex + 1} / ${targetArray.length}`;
-            document.getElementById('quiz-title').textContent = `請選出「${currentItem.word}」正確的讀音與造詞組合`;
-
-            let correctText = `${currentItem.zhuyin} [ ${currentItem.example1} / ${currentItem.example2} ]`;
-            let options = [{ text: correctText, isCorrect: true }];
-            
-            let fakeBopo = getRandomPropertyExclude(currentQuizData, 'zhuyin', currentItem.zhuyin);
-            let fakeEx1 = getRandomPropertyExclude(currentQuizData, 'example1', currentItem.example1);
-            let fakeEx2 = getRandomPropertyExclude(currentQuizData, 'example2', currentItem.example2);
-            
-            options.push({ text: `${fakeBopo} [ ${currentItem.example1} / ${currentItem.example2} ]`, isCorrect: false });
-            options.push({ text: `${currentItem.zhuyin} [ ${fakeEx1} / ${currentItem.example2} ]`, isCorrect: false });
-            options.push({ text: `${fakeBopo} [ ${fakeEx1} / ${fakeEx2} ]`, isCorrect: false });
-
-            const container = document.getElementById('options-container');
-            container.innerHTML = '';
-            shuffle(options).forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = 'btn quiz-btn';
-                btn.textContent = opt.text;
-                btn.onclick = () => handleAnswer(opt.isCorrect, btn, currentItem);
-                container.appendChild(btn);
-            });
-        }
-
-        function handleAnswer(isCorrect, btn, currentItem) {
-            const targetArray = isRetryMode ? errorList : currentQuizData;
-            if (isCorrect) {
-                btn.classList.add('btn-correct');
-                if (!isRetryMode && Math.random() < 0.40) triggerDrop();
-                setTimeout(() => {
-                    currentQuizIndex++;
-                    if (currentQuizIndex < targetArray.length) renderQuiz();
-                    else isRetryMode ? finishRetry() : finishQuiz();
-                }, 400);
-            } else {
-                btn.classList.add('btn-wrong');
-                if (!isRetryMode) {
-                    if (!errorList.includes(currentItem)) errorList.push(currentItem);
-                    setTimeout(() => {
-                        currentQuizIndex++;
-                        if (currentQuizIndex < targetArray.length) renderQuiz();
-                        else finishQuiz();
-                    }, 400);
-                } else {
-                    setTimeout(() => btn.classList.remove('btn-wrong'), 400);
-                }
-            }
-        }
-
-        function finishQuiz() {
-            timeSpent = Math.round((new Date() - startTime) / 1000);
-            document.getElementById('time-spent').textContent = timeSpent;
-            document.getElementById('error-count').textContent = errorList.length;
-            document.getElementById('flower-container').classList.add('hidden'); 
-
-            document.getElementById('earned-summary').innerHTML = `<strong>本次探索獲得素材：</strong><br>🪵 原木 x ${earnedMaterials.wood}&nbsp;&nbsp;💧 水滴石 x ${earnedMaterials.water}&nbsp;&nbsp;🔥 火焰碎片 x ${earnedMaterials.fire}`;
-
-            if (errorList.length === 0) {
-                document.getElementById('result-message').textContent = "太厲害了！字族密碼全部解鎖！";
-                document.getElementById('retry-btn').classList.add('hidden');
-                document.getElementById('restart-btn').classList.remove('hidden');
-            } else {
-                document.getElementById('result-message').textContent = `你有 ${errorList.length} 個字的花瓣枯萎了，快去特訓修復它！`;
-                document.getElementById('retry-btn').classList.remove('hidden');
-                document.getElementById('restart-btn').classList.add('hidden');
-            }
-            showScreen('result-screen');
-            
-            fetch(GAS_API_URL, { 
-                method: 'POST', 
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // 已加入 CORS 通行證
-                body: JSON.stringify({ action: "save", grade: studentGrade, seat: studentSeat, timeSpent: timeSpent, errorCount: errorList.length, addedMaterials: earnedMaterials }) 
-            });
-        }
-
-        function retryErrors() {
-            isRetryMode = true; currentQuizIndex = 0;
-            renderQuiz(); showScreen('quiz-screen');
-        }
-
-        function finishRetry() {
-            document.getElementById('result-title').textContent = "字族特訓完成！";
-            document.getElementById('result-message').textContent = "太棒了！所有的生字花朵都盛開囉！";
-            document.getElementById('retry-btn').classList.add('hidden');
-            document.getElementById('restart-btn').classList.remove('hidden');
-            showScreen('result-screen');
-        }
-    </script>
-</body>
-</html>
+      if (foundRow !== -1) {
+         sheetInventory.getRange(foundRow, 2).setValue(Number(sheetInventory.getRange(foundRow, 2).getValue()||0) + added.wood);
+         sheetInventory.getRange(foundRow, 3).setValue(Number(sheetInventory.getRange(foundRow, 3).getValue()||0) + added.water);
+         sheetInventory.getRange(foundRow, 4).setValue(Number(sheetInventory.getRange(foundRow, 4).getValue()||0) + added.fire);
+      } else {
+         sheetInventory.appendRow([seat, added.wood, added.water, added.fire]);
+      }
+      return ContentService.createTextOutput(JSON.stringify({"status": "success"})).setMimeType(ContentService.MimeType.JSON);
+    }
+  } catch (error) { 
+    return ContentService.createTextOutput(JSON.stringify({"status": "error", "message": error.toString()})).setMimeType(ContentService.MimeType.JSON); 
+  }
+}
