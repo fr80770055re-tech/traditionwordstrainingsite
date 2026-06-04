@@ -3,258 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>識字小達人 - 學習與挑戰</title>
+    <title>識字小達人 - 花朵字族極速版</title>
     <style>
-        /* 低飽和護眼風格設定 */
-        :root {
-            --bg-color: #F5F5F0;        
-            --right-bg: #E3D5CA;        
-            --text-main: #4A4A4A;       
-            --btn-bg: #A3B5A6;          
-            --btn-hover: #8F9F91;
-            --btn-quiz: #9CA8B8;        
-            --btn-quiz-hover: #8793A3;
-            --btn-wrong: #D4A3A3;       
-            --btn-correct: #A3C9A8;     
-        }
-
-        body {
-            font-family: 'BiauKai', '標楷體', serif;
-            display: flex;
-            height: 100vh;
-            margin: 0;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            overflow: hidden;
-        }
-
-        #left-panel {
-            flex: 6;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 40px 80px;
-            box-sizing: border-box;
-            overflow-y: auto;
-        }
-
-        #right-panel {
-            flex: 4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: var(--right-bg);
-            border-left: 2px solid #D5C7BC;
-            box-sizing: border-box;
-            transition: all 0.3s ease;
-        }
-
-        ruby { font-size: 12rem; font-weight: normal; }
-        rt { font-size: 3rem; color: #5A5A5A; transform: translateY(-10px); }
-
+        :root { --bg-color: #F5F5F0; --right-bg: #E3D5CA; --text-main: #4A4A4A; --btn-bg: #A3B5A6; --btn-hover: #8F9F91; --btn-quiz: #9CA8B8; --btn-quiz-hover: #8793A3; --btn-wrong: #D4A3A3; --btn-correct: #A3C9A8; }
+        body { font-family: 'BiauKai', '標楷體', serif; display: flex; height: 100vh; margin: 0; background-color: var(--bg-color); color: var(--text-main); overflow: hidden; }
+        #left-panel { flex: 5; display: flex; flex-direction: column; justify-content: center; padding: 40px 60px; box-sizing: border-box; overflow-y: auto; }
+        #right-panel { flex: 5; display: flex; justify-content: center; align-items: center; background-color: var(--right-bg); border-left: 2px solid #D5C7BC; position: relative; }
         .hidden { display: none !important; }
-
-        h1, h2 { font-size: 2.5rem; margin-bottom: 20px; }
-        p { font-size: 1.5rem; line-height: 1.6; margin-bottom: 20px; }
-        
+        h1, h2 { font-size: 2.3rem; margin-bottom: 20px; }
+        p { font-size: 1.4rem; line-height: 1.6; margin-bottom: 15px; }
         .input-group { margin-bottom: 20px; font-size: 1.5rem; }
-        .input-group input {
-            font-size: 1.5rem;
-            padding: 8px;
-            width: 100px;
-            border: 2px solid #ccc;
-            border-radius: 8px;
-            font-family: 'BiauKai', '標楷體', serif;
-        }
-
-        .btn {
-            padding: 15px 30px;
-            font-size: 1.8rem;
-            margin: 10px 0;
-            cursor: pointer;
-            border-radius: 12px;
-            border: none;
-            background-color: var(--btn-bg);
-            color: white;
-            font-family: 'BiauKai', '標楷體', serif;
-            transition: all 0.2s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
+        .input-group input { font-size: 1.5rem; padding: 8px; width: 100px; border: 2px solid #ccc; border-radius: 8px; font-family: 'BiauKai', '標楷體', serif; }
+        .btn { padding: 12px 25px; font-size: 1.6rem; margin: 10px 0; cursor: pointer; border-radius: 12px; border: none; background-color: var(--btn-bg); color: white; font-family: 'BiauKai', '標楷體', serif; transition: all 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .btn:hover { background-color: var(--btn-hover); transform: translateY(-2px); }
-        .btn:active { transform: translateY(0); }
-
-        #options-container {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            width: 100%;
-            max-width: 500px;
-        }
-        .quiz-btn {
-            background-color: var(--btn-quiz);
-            text-align: left;
-            padding: 20px;
-        }
+        #options-container { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 500px; }
+        .quiz-btn { background-color: var(--btn-quiz); text-align: left; padding: 18px; font-size: 1.4rem; }
         .quiz-btn:hover { background-color: var(--btn-quiz-hover); }
-        
         .btn-wrong { background-color: var(--btn-wrong) !important; animation: shake 0.4s; }
         .btn-correct { background-color: var(--btn-correct) !important; }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            50% { transform: translateX(5px); }
-            75% { transform: translateX(-5px); }
-        }
-
-        #loading {
-            position: fixed;
-            top:0; left:0; width:100%; height:100%;
-            background: rgba(245, 245, 240, 0.95);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-size: 2rem;
-            z-index: 1000;
-        }
-
-        #inventory-panel {
-            background-color: #E6E1DC;
-            padding: 15px 20px;
-            border-radius: 12px;
-            font-size: 1.4rem;
-            margin-bottom: 20px;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            border: 1px solid #D5C7BC;
-        }
-
-        #toast-container {
-            position: fixed;
-            top: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 9999;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } }
+        #loading { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(245, 245, 240, 0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 2rem; z-index: 1000; }
+        #inventory-panel { background-color: #E6E1DC; padding: 12px 20px; border-radius: 12px; font-size: 1.3rem; margin-bottom: 20px; display: flex; align-items: center; gap: 15px; border: 1px solid #D5C7BC; }
         
-        .toast {
-            background-color: rgba(255, 255, 255, 0.95);
-            border: 2px solid var(--btn-correct);
-            color: var(--text-main);
-            padding: 12px 24px;
-            border-radius: 30px;
-            font-size: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            animation: floatUp 1.5s forwards;
-        }
-
-        @keyframes floatUp {
-            0% { opacity: 0; transform: translateY(20px); }
-            15% { opacity: 1; transform: translateY(0); }
-            85% { opacity: 1; transform: translateY(0); }
-            100% { opacity: 0; transform: translateY(-20px); }
-        }
-
-        @media (max-width: 900px) {
-            body { flex-direction: column-reverse; }
-            #left-panel { flex: 6; padding: 20px; }
-            #right-panel { flex: 4; border-left: none; border-bottom: 2px solid #D5C7BC; }
-            ruby { font-size: 8rem; }
-            rt { font-size: 2rem; }
-            #inventory-panel { flex-wrap: wrap; font-size: 1.2rem; }
-        }
+        /* 🌸 花朵識字視覺核心 CSS 🌸 */
+        .flower-wrapper { position: relative; width: 380px; height: 380px; display: flex; justify-content: center; align-items: center; }
+        .flower-core { width: 90px; height: 90px; background-color: #D9A07E; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 2.8rem; color: white; z-index: 10; box-shadow: 0 4px 8px rgba(0,0,0,0.15); border: 3px solid #FFF; }
+        .petal { position: absolute; width: 75px; height: 75px; background-color: #E8D8CE; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 2.2rem; color: #5A5A5A; transition: all 0.4s ease; box-shadow: 0 3px 6px rgba(0,0,0,0.08); border: 2px solid #FFF; }
+        .petal-target { background-color: var(--btn-bg) !important; color: white !important; font-weight: bold; transform: scale(1.15) !important; box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important; z-index: 5; }
+        
+        #toast-container { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 9999; pointer-events: none; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background-color: rgba(255, 255, 255, 0.95); border: 2px solid var(--btn-correct); color: var(--text-main); padding: 12px 24px; border-radius: 30px; font-size: 1.5rem; animation: floatUp 1.5s forwards; }
+        @keyframes floatUp { 0% { opacity: 0; transform: translateY(20px); } 15% { opacity: 1; transform: translateY(0); } 85% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-20px); } }
     </style>
 </head>
 <body>
-
-    <div id="loading" class="hidden">
-        <div>努力同步雲端資料與字卡中，請稍候...</div>
-        <div style="font-size: 1.2rem; color: #888; margin-top: 10px;">(若等待超過 5 秒，請檢查 API 網址或重新整理)</div>
-    </div>
-    
+    <div id="loading" class="hidden">載入花朵字族題庫中，請稍候...</div>
     <div id="toast-container"></div>
-
+    
     <div id="left-panel">
-        
         <div id="inventory-panel" class="hidden">
-            🎒 <b>我的背包</b> | 
-            <span id="inv-wood">🪵 原木: 0</span> | 
-            <span id="inv-water">💧 水滴石: 0</span> | 
-            <span id="inv-fire">🔥 火焰碎片: 0</span>
+            🎒 <b>我的背包</b> | <span id="inv-wood">🪵 原木: 0</span> | <span id="inv-water">💧 水滴石: 0</span> | <span id="inv-fire">🔥 火焰碎片: 0</span>
         </div>
-
+        
         <div id="login-screen">
-            <h1>📝 識字小達人挑戰</h1>
-            <p>請輸入資料，準備出發探索！</p>
-            <div class="input-group">
-                <label>年級：<input type="number" id="grade" min="1" max="6" value="4"></label>
-            </div>
-            <div class="input-group">
-                <label>座號：<input type="number" id="seat" min="1" placeholder="例: 15"></label>
-            </div>
+            <h1>📝 識字小達人：字族花朵挑戰</h1>
+            <div class="input-group"><label>年級：<input type="number" id="grade" min="1" max="6" value="4"></label></div>
+            <div class="input-group"><label>座號：<input type="number" id="seat" min="1" placeholder="例: 15"></label></div>
             <button class="btn" onclick="startApp()">進入學習模式</button>
         </div>
-
+        
         <div id="learning-screen" class="hidden">
-            <h2 id="learn-example">造詞：顯示中...</h2>
+            <h2 id="learn-example1">造詞一：顯示中...</h2>
+            <h2 id="learn-example2" style="color: #6B7A6E;">造詞二：顯示中...</h2>
             <p id="learn-def">注釋：顯示中...</p>
-            <p style="color:#777; font-size:1.2rem;">進度: <span id="learn-progress">1/15</span></p>
+            <p style="color:#777; font-size:1.1rem;">學習進度: <span id="learn-progress">1/15</span></p>
             <button class="btn" id="next-learn-btn" onclick="nextLearn()">下一個字</button>
-            <button class="btn hidden" style="background-color: #E2A76F;" id="start-quiz-btn" onclick="startQuiz()">準備好了，開始測驗！</button>
+            <button class="btn hidden" style="background-color: #E2A76F;" id="start-quiz-btn" onclick="startQuiz()">字族特訓開始！</button>
         </div>
-
+        
         <div id="quiz-screen" class="hidden">
-            <h2 id="quiz-title">請選出正確的「讀音」與「造詞」</h2>
-            <p style="color:#777; font-size:1.2rem;" id="quiz-progress-text">測驗進度: 1/15</p>
+            <h2 id="quiz-title">請選出正確的「讀音」與「造詞組合」</h2>
+            <p style="color:#777; font-size:1.1rem;" id="quiz-progress-text">測驗進度: 1/15</p>
             <div id="options-container"></div>
         </div>
-
+        
         <div id="result-screen" class="hidden">
-            <h1 id="result-title">探索結束！</h1>
+            <h1>探索結束！</h1>
             <p>花費時間：<span id="time-spent"></span> 秒</p>
             <p>錯題數量：<span id="error-count"></span> 題</p>
             <div id="earned-summary" style="background: #E6E1DC; padding: 15px; border-radius: 8px; margin-bottom: 20px;"></div>
             <p id="result-message" style="font-weight: bold; color: var(--btn-quiz);"></p>
-            <button class="btn" id="retry-btn" onclick="retryErrors()">進行錯題二次練習</button>
-            <button class="btn hidden" id="restart-btn" onclick="resetApp()">重新開始新測驗</button>
+            <button class="btn" id="retry-btn" onclick="retryErrors()">進行錯題二次特訓</button>
+            <button class="btn hidden" id="restart-btn" onclick="location.reload()">重新開始新測驗</button>
         </div>
-
     </div>
-
+    
     <div id="right-panel">
-        <span id="main-character-display" class="hidden">
-            <ruby id="ruby-word">字<rt id="ruby-zhuyin">ㄗˋ</rt></ruby>
-        </span>
+        <div id="flower-container" class="flower-wrapper hidden"></div>
     </div>
 
     <script>
-        // ------------------ 設定區 ------------------
-        const GAS_API_URL = "https://script.google.com/macros/s/AKfycby4PBwbDrDkJNX6FTQUgoJxXqeFBlVYu-Ju8dDUPJ865O1ItfZLzYHhFOmicUEyWIYX6Q/exec"; 
+        const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzU9JNzz1bSz2adapL1ol6caXPeiA-d1YpAs9KqydaRPpyctpDjM6pGeUmb-7Je3ws3Qg/exec"; 
+        
+        let currentQuizData = [], errorList = [];
+        let currentLearnIndex = 0, currentQuizIndex = 0, startTime = null, timeSpent = 0, isRetryMode = false;
+        let studentGrade = "", studentSeat = "";
+        let currentMaterials = { wood: 0, water: 0, fire: 0 }, earnedMaterials = { wood: 0, water: 0, fire: 0 };
 
-        // ------------------ 狀態變數 ------------------
-        let wordPool = []; 
-        let currentQuizData = []; 
-        let errorList = [];        
-        let currentLearnIndex = 0;
-        let currentQuizIndex = 0;
-        let startTime = null;
-        let timeSpent = 0;
-        let isRetryMode = false;
-        let studentGrade = "";
-        let studentSeat = "";
-
-        let currentMaterials = { wood: 0, water: 0, fire: 0 };
-        let earnedMaterials = { wood: 0, water: 0, fire: 0 };
-        const materialIcons = { wood: '🪵 原木', water: '💧 水滴石', fire: '🔥 火焰碎片' };
-
-        // ------------------ 工具函式 ------------------
         function shuffle(array) {
             let currentIndex = array.length, randomIndex;
             while (currentIndex !== 0) {
@@ -267,20 +102,12 @@
 
         function getRandomPropertyExclude(arr, key, excludeValue) {
             const filtered = arr.filter(item => item[key] !== excludeValue);
-            if(filtered.length === 0) return arr[0][key];
-            return filtered[Math.floor(Math.random() * filtered.length)][key];
+            return filtered.length > 0 ? filtered[Math.floor(Math.random() * filtered.length)][key] : excludeValue;
         }
 
-        function cleanBopomofo(str) {
-            if(!str) return "";
-            return str.replace(/<[^>]+>/g, '').replace(/ /g, '');
-        }
-
-        function showScreen(screenId) {
-            ['login-screen', 'learning-screen', 'quiz-screen', 'result-screen'].forEach(id => {
-                document.getElementById(id).classList.add('hidden');
-            });
-            document.getElementById(screenId).classList.remove('hidden');
+        function showScreen(id) {
+            ['login-screen', 'learning-screen', 'quiz-screen', 'result-screen'].forEach(s => document.getElementById(s).classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
         }
 
         function renderInventory() {
@@ -292,142 +119,91 @@
         function triggerDrop() {
             const mats = ['wood', 'water', 'fire'];
             const drop = mats[Math.floor(Math.random() * mats.length)];
-            
-            earnedMaterials[drop]++;
-            currentMaterials[drop]++;
+            earnedMaterials[drop]++; currentMaterials[drop]++;
             renderInventory();
-            
-            const toastContainer = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = 'toast';
-            toast.textContent = `🎉 獲得 1 個${materialIcons[drop].split(' ')[1]}！`;
-            toastContainer.appendChild(toast);
-            
+            toast.textContent = `🎉 獲得 1 個${drop === 'wood' ? '原木' : drop === 'water' ? '水滴石' : '火焰碎片'}！`;
+            document.getElementById('toast-container').appendChild(toast);
             setTimeout(() => toast.remove(), 1500);
         }
 
-        // ------------------ API 邏輯 ------------------
-        
-        async function loadInventoryFromCloud() {
-            try {
-                console.log("正在嘗試連線到 GAS API...");
-                const response = await fetch(GAS_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: "load", seat: studentSeat })
-                });
-                
-                if (!response.ok) {
-                    throw new Error("GAS 伺服器無回應 (狀態碼: " + response.status + ")");
-                }
+        // 🌸 核心動態幾何演算法：自動繪製生字字族花朵 🌸
+        function drawFlower(coreComponent, targetWord, petalsString) {
+            const container = document.getElementById('flower-container');
+            container.innerHTML = ''; 
+            container.classList.remove('hidden');
 
-                const result = await response.json();
-                console.log("GAS 原始回傳數據：", result);
+            // 1. 產生黃金中心部件
+            const core = document.createElement('div');
+            core.className = 'flower-core';
+            core.textContent = coreComponent || " ";
+            container.appendChild(core);
 
-                if(result.status === "success") {
-                    if (result.materials) currentMaterials = result.materials;
-                    if (result.words && result.words.length > 0) {
-                        wordPool = result.words.map(w => w.toString().trim()).filter(w => w !== "");
-                        console.log("成功同步雲端字庫，共計：", wordPool.length, "個字", wordPool);
-                    }
-                } else {
-                    throw new Error(result.message || "未知的 GAS 錯誤");
-                }
-            } catch (error) {
-                console.error("讀取雲端資料失敗", error);
-                alert("連線到 Google 試算表失敗！\n錯誤訊息：" + error.message);
-                wordPool = []; 
-            }
-        }
-
-        // 【核心優化修正】：完美對接萌典官方公開資料欄位
-// 【終極修正版】：加入 CORS 代理，徹底解決 0/15 抓取失敗問題
-// 【全新精簡版】：直接連線萌典 + 絕對保底機制
-        async function fetchWordData(char) {
-            try {
-                // 1. 直接向萌典發送請求，不透過任何代理伺服器
-                const response = await fetch(`https://www.moedict.tw/uni/${char}.json`);
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    // 2. 確保資料結構完整
-                    if (data.heteronyms && data.heteronyms.length > 0 && data.heteronyms[0].defs && data.heteronyms[0].defs.length > 0) {
-                        const het0 = data.heteronyms[0];
-                        const bopo = cleanBopomofo(het0.bopomofo);
-                        const defObj = het0.defs[0];
-                        const exampleText = defObj.example ? defObj.example.join("、") : "（請參考注釋）";
-
-                        return {
-                            word: char,
-                            zhuyin: bopo || "---",
-                            definition: defObj.def || "暫無注釋",
-                            example: exampleText,
-                            altBopo: (data.heteronyms.length > 1) ? cleanBopomofo(data.heteronyms[1].bopomofo) : null
-                        };
-                    }
-                }
-            } catch (error) {
-                console.warn(`萌典 API 暫時無法回應「${char}」，啟動保底機制。`);
+            // 2. 解析並過濾花瓣文字組
+            let petals = petalsString ? petalsString.split(/[,，、]/).map(p => p.trim()).filter(p => p) : [];
+            
+            // 強制確保主目標字一定存在於花瓣中
+            if (!petals.includes(targetWord)) {
+                petals.unshift(targetWord);
             }
 
-            // =================================================================
-            // 🚨 【絕對保底機制】
-            // 如果萌典查不到這個字、或者網路稍慢，直接由系統自動生成字卡。
-            // 確保每次抽出的 15 個字都能用，學生可以立刻進入測驗！
-            // =================================================================
-            return {
-                word: char,
-                zhuyin: "---",
-                definition: "（依字面文意判斷）",
-                example: `${char}字、${char}詞`,
-                altBopo: null
-            };
+            const radius = 105; // 圓心擴散半徑
+            const totalPetals = petals.length;
+
+            // 3. 依據圓周角度均勻分布排列花瓣
+            petals.forEach((word, index) => {
+                const petal = document.createElement('div');
+                petal.className = 'petal';
+                petal.textContent = word;
+
+                if (word === targetWord) {
+                    petal.classList.add('petal-target'); // 高亮當前主要學習的目標字
+                }
+
+                // 三角函數幾何分配
+                const angle = (-Math.PI / 2) + (index * (2 * Math.PI / totalPetals));
+                const x = radius * Math.cos(angle);
+                const y = radius * Math.sin(angle);
+
+                petal.style.transform = `translate(${x}px, ${y}px)`;
+                container.appendChild(petal);
+            });
         }
-        // ------------------ 遊戲流程 ------------------
+
         async function startApp() {
             studentGrade = document.getElementById('grade').value;
             studentSeat = document.getElementById('seat').value;
-            if(!studentSeat) { alert("請輸入座號！"); return; }
+            if(!studentSeat) return alert("請輸入座號！");
 
             document.getElementById('loading').classList.remove('hidden');
 
-            await loadInventoryFromCloud();
-            
-            if (!wordPool || wordPool.length < 15) {
-                alert(`字庫總數不足！目前雲端讀到 ${wordPool ? wordPool.length : 0} 個字。\n請確保試算表 WordPool 分頁內至少填有 15 個以上的字！`);
+            try {
+                const response = await fetch(GAS_API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: "load", seat: studentSeat })
+                });
+                const result = await response.json();
+                
+                if(result.status === "success") {
+                    currentMaterials = result.materials || currentMaterials;
+                    currentQuizData = result.words || [];
+                    
+                    if (currentQuizData.length < 1) {
+                        alert("題庫尚未建立完全，請確認試算表欄位！");
+                        document.getElementById('loading').classList.add('hidden');
+                        return;
+                    }
+                } else { throw new Error(result.message); }
+            } catch(e) {
+                alert("連線失敗，請檢查網路。");
                 document.getElementById('loading').classList.add('hidden');
                 return;
             }
 
-            let validWords = [];
-            let pool = shuffle([...wordPool]); 
-            
-            console.log("開始向萌典 API 發送批次請求...");
-            
-            // 每次並行請求 5 個字，避免觸發萌典伺服器的頻率限制阻擋
-            while(validWords.length < 15 && pool.length > 0) {
-                let batch = pool.splice(0, 5); 
-                let promises = batch.map(char => fetchWordData(char));
-                let results = await Promise.all(promises);
-                let batchValid = results.filter(item => item !== null);
-                validWords = validWords.concat(batchValid);
-                console.log(`目前累計成功獲取有效字數：(${validWords.length}/15)`);
-            }
-
-            if (validWords.length < 15) {
-                alert(`萌典 API 轉換成功的有效字數不足 (${validWords.length}/15)。\n\n💡 建議調整：\n1. 請檢查 WordPool 內的字是否有罕見字或打錯字。\n2. 請多加一些常見常用的生活單字再試一次！`);
-                document.getElementById('loading').classList.add('hidden');
-                return;
-            }
-
-            currentQuizData = validWords.slice(0, 15);
-            
             document.getElementById('loading').classList.add('hidden');
             renderInventory();
             document.getElementById('inventory-panel').classList.remove('hidden');
-            
-            document.getElementById('main-character-display').classList.remove('hidden');
             currentLearnIndex = 0;
             renderLearn();
             showScreen('learning-screen');
@@ -435,32 +211,25 @@
 
         function renderLearn() {
             const current = currentQuizData[currentLearnIndex];
-            document.getElementById('ruby-word').childNodes[0].nodeValue = current.word;
-            document.getElementById('ruby-zhuyin').textContent = current.zhuyin;
-            document.getElementById('learn-example').textContent = `造詞：${current.example}`;
+            
+            // 更新左側教學面板
+            document.getElementById('learn-example1').textContent = `造詞一：${current.example1}`;
+            document.getElementById('learn-example2').textContent = `造詞二：${current.example2 || '（無）'}`;
             document.getElementById('learn-def').textContent = `注釋：${current.definition}`;
-            document.getElementById('learn-progress').textContent = `${currentLearnIndex + 1} / 15`;
+            document.getElementById('learn-progress').textContent = `${currentLearnIndex + 1} / ${currentQuizData.length}`;
 
-            if (currentLearnIndex === 14) {
-                document.getElementById('next-learn-btn').classList.add('hidden');
-                document.getElementById('start-quiz-btn').classList.remove('hidden');
-            } else {
-                document.getElementById('next-learn-btn').classList.remove('hidden');
-                document.getElementById('start-quiz-btn').classList.add('hidden');
-            }
+            // 🌸 動態觸發花朵繪製
+            drawFlower(current.flowerCore, current.word, current.flowerPetals);
+
+            document.getElementById('next-learn-btn').classList.toggle('hidden', currentLearnIndex === currentQuizData.length - 1);
+            document.getElementById('start-quiz-btn').classList.toggle('hidden', currentLearnIndex !== currentQuizData.length - 1);
         }
 
-        function nextLearn() {
-            if (currentLearnIndex < 14) { currentLearnIndex++; renderLearn(); }
-        }
+        function nextLearn() { if (currentLearnIndex < currentQuizData.length - 1) { currentLearnIndex++; renderLearn(); } }
 
         function startQuiz() {
-            currentQuizIndex = 0;
-            errorList = [];
-            isRetryMode = false;
-            earnedMaterials = { wood: 0, water: 0, fire: 0 }; 
+            currentQuizIndex = 0; errorList = []; isRetryMode = false; earnedMaterials = { wood: 0, water: 0, fire: 0 };
             startTime = new Date();
-            document.getElementById('right-panel').classList.add('hidden');
             renderQuiz();
             showScreen('quiz-screen');
         }
@@ -469,26 +238,27 @@
             const targetArray = isRetryMode ? errorList : currentQuizData;
             const currentItem = targetArray[currentQuizIndex];
             
-            document.getElementById('quiz-progress-text').textContent = 
-                isRetryMode ? `錯題練習進度: ${currentQuizIndex + 1} / ${targetArray.length}` : `測驗進度: ${currentQuizIndex + 1} / 15`;
-            document.getElementById('quiz-title').textContent = `請選出「${currentItem.word}」正確的讀音與造詞`;
+            // 測驗時同步在右側顯示對應生字花朵，加深印象
+            drawFlower(currentItem.flowerCore, currentItem.word, currentItem.flowerPetals);
 
-            let options = [{ text: `${currentItem.zhuyin} - ${currentItem.example}`, isCorrect: true }];
+            document.getElementById('quiz-progress-text').textContent = isRetryMode ? `錯題二次特訓: ${currentQuizIndex + 1} / ${targetArray.length}` : `測驗進度: ${currentQuizIndex + 1} / ${targetArray.length}`;
+            document.getElementById('quiz-title').textContent = `請選出「${currentItem.word}」正確的讀音與造詞組合`;
+
+            // 【雙造詞整合選項設計】
+            let correctText = `${currentItem.zhuyin} [ ${currentItem.example1} / ${currentItem.example2} ]`;
+            let options = [{ text: correctText, isCorrect: true }];
             
-            let fakeBopo = currentItem.altBopo || getRandomPropertyExclude(currentQuizData, 'zhuyin', currentItem.zhuyin);
-            options.push({ text: `${fakeBopo} - ${currentItem.example}`, isCorrect: false });
+            let fakeBopo = getRandomPropertyExclude(currentQuizData, 'zhuyin', currentItem.zhuyin);
+            let fakeEx1 = getRandomPropertyExclude(currentQuizData, 'example1', currentItem.example1);
+            let fakeEx2 = getRandomPropertyExclude(currentQuizData, 'example2', currentItem.example2);
+            
+            options.push({ text: `${fakeBopo} [ ${currentItem.example1} / ${currentItem.example2} ]`, isCorrect: false });
+            options.push({ text: `${currentItem.zhuyin} [ ${fakeEx1} / ${currentItem.example2} ]`, isCorrect: false });
+            options.push({ text: `${fakeBopo} [ ${fakeEx1} / ${fakeEx2} ]`, isCorrect: false });
 
-            let fakeEx = getRandomPropertyExclude(currentQuizData, 'example', currentItem.example);
-            options.push({ text: `${currentItem.zhuyin} - ${fakeEx}`, isCorrect: false });
-
-            let fakeBopo2 = getRandomPropertyExclude(currentQuizData, 'zhuyin', currentItem.zhuyin);
-            let fakeEx2 = getRandomPropertyExclude(currentQuizData, 'example', currentItem.example);
-            options.push({ text: `${fakeBopo2} - ${fakeEx2}`, isCorrect: false });
-
-            options = shuffle(options);
             const container = document.getElementById('options-container');
             container.innerHTML = '';
-            options.forEach(opt => {
+            shuffle(options).forEach(opt => {
                 const btn = document.createElement('button');
                 btn.className = 'btn quiz-btn';
                 btn.textContent = opt.text;
@@ -497,17 +267,11 @@
             });
         }
 
-        // 修改後的回答處理，避免重複推入錯題
         function handleAnswer(isCorrect, btn, currentItem) {
             const targetArray = isRetryMode ? errorList : currentQuizData;
-
             if (isCorrect) {
                 btn.classList.add('btn-correct');
-                
-                if (!isRetryMode && Math.random() < 0.40) {
-                    triggerDrop();
-                }
-
+                if (!isRetryMode && Math.random() < 0.40) triggerDrop();
                 setTimeout(() => {
                     currentQuizIndex++;
                     if (currentQuizIndex < targetArray.length) renderQuiz();
@@ -516,9 +280,7 @@
             } else {
                 btn.classList.add('btn-wrong');
                 if (!isRetryMode) {
-                    if (!errorList.includes(currentItem)) {
-                        errorList.push(currentItem);
-                    }
+                    if (!errorList.includes(currentItem)) errorList.push(currentItem);
                     setTimeout(() => {
                         currentQuizIndex++;
                         if (currentQuizIndex < targetArray.length) renderQuiz();
@@ -534,83 +296,35 @@
             timeSpent = Math.round((new Date() - startTime) / 1000);
             document.getElementById('time-spent').textContent = timeSpent;
             document.getElementById('error-count').textContent = errorList.length;
+            document.getElementById('flower-container').classList.add('hidden'); // 隱藏花朵
 
-            const summaryDiv = document.getElementById('earned-summary');
-            summaryDiv.innerHTML = `<strong>本次探索獲得素材：</strong><br>
-                                    🪵 原木 x ${earnedMaterials.wood}&nbsp;&nbsp;&nbsp;
-                                    💧 水滴石 x ${earnedMaterials.water}&nbsp;&nbsp;&nbsp;
-                                    🔥 火焰碎片 x ${earnedMaterials.fire}`;
-
-            const msgEl = document.getElementById('result-message');
-            const retryBtn = document.getElementById('retry-btn');
-            const restartBtn = document.getElementById('restart-btn');
+            document.getElementById('earned-summary').innerHTML = `<strong>本次探索獲得素材：</strong><br>🪵 原木 x ${earnedMaterials.wood}&nbsp;&nbsp;💧 水滴石 x ${earnedMaterials.water}&nbsp;&nbsp;🔥 火焰碎片 x ${earnedMaterials.fire}`;
 
             if (errorList.length === 0) {
-                msgEl.textContent = "太厲害了！完美通關！";
-                retryBtn.classList.add('hidden');
-                restartBtn.classList.remove('hidden');
+                document.getElementById('result-message').textContent = "太厲害了！字族密碼全部解鎖！";
+                document.getElementById('retry-btn').classList.add('hidden');
+                document.getElementById('restart-btn').classList.remove('hidden');
             } else {
-                msgEl.textContent = `你有 ${errorList.length} 個字需要再練習一下喔！`;
-                retryBtn.classList.remove('hidden');
-                restartBtn.classList.add('hidden');
+                document.getElementById('result-message').textContent = `你有 ${errorList.length} 個字的花瓣枯萎了，快去特訓修復它！`;
+                document.getElementById('retry-btn').classList.remove('hidden');
+                document.getElementById('restart-btn').classList.add('hidden');
             }
-
-            document.getElementById('right-panel').classList.remove('hidden');
-            document.getElementById('main-character-display').classList.add('hidden');
-            
             showScreen('result-screen');
-            submitResult(); 
-        }
-
-        async function submitResult() {
-            const payload = {
-                action: "save",
-                grade: studentGrade,
-                seat: studentSeat,
-                timeSpent: timeSpent,
-                errorCount: errorList.length,
-                addedMaterials: earnedMaterials
-            };
-
-            try {
-                await fetch(GAS_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify(payload)
-                });
-                console.log("成績與背包已更新至雲端");
-            } catch (error) {
-                console.error("存檔失敗:", error);
-            }
+            
+            fetch(GAS_API_URL, { method: 'POST', body: JSON.stringify({ action: "save", grade: studentGrade, seat: studentSeat, timeSpent: timeSpent, errorCount: errorList.length, addedMaterials: earnedMaterials }) });
         }
 
         function retryErrors() {
-            isRetryMode = true;
-            currentQuizIndex = 0;
-            document.getElementById('right-panel').classList.add('hidden');
-            renderQuiz();
-            showScreen('quiz-screen');
+            isRetryMode = true; currentQuizIndex = 0;
+            renderQuiz(); showScreen('quiz-screen');
         }
 
         function finishRetry() {
-            document.getElementById('result-title').textContent = "錯題練習完成！";
-            document.getElementById('result-message').textContent = "太棒了！所有錯題都學會囉！";
+            document.getElementById('result-title').textContent = "字族特訓完成！";
+            document.getElementById('result-message').textContent = "太棒了！所有的生字花朵都盛開囉！";
             document.getElementById('retry-btn').classList.add('hidden');
             document.getElementById('restart-btn').classList.remove('hidden');
-            document.getElementById('right-panel').classList.remove('hidden');
             showScreen('result-screen');
-        }
-
-        function resetApp() {
-            document.getElementById('seat').value = '';
-            document.getElementById('next-learn-btn').classList.remove('hidden');
-            document.getElementById('start-quiz-btn').classList.add('hidden');
-            document.getElementById('inventory-panel').classList.add('hidden');
-            
-            earnedMaterials = { wood: 0, water: 0, fire: 0 };
-            document.getElementById('toast-container').innerHTML = '';
-            
-            showScreen('login-screen');
         }
     </script>
 </body>
